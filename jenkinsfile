@@ -1,0 +1,26 @@
+pipeline {
+    agent any
+
+    stages {
+        stage('Checkout') {
+            steps {
+                git 'https://github.com/your-username/your-repo.git'
+            }
+        }
+        stage('Build') {
+            steps {
+                sh 'docker build -t internet-speed-bot .'
+            }
+        }
+        stage('Test') {
+            steps {
+                sh 'python -m unittest discover -s tests'
+            }
+        }
+        stage('Deploy') {
+            steps {
+                sh 'docker run -d --name bot internet-speed-bot'
+            }
+        }
+    }
+}
