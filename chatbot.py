@@ -2,7 +2,7 @@
 PROMISED_DOWN = 100
 PROMISED_UP = 15
 TWITTER_EMAIL = 'fadareabdulsalam@gmail.com'
-TWITTER_PASSWORD = 'Athlete.20281'
+TWITTER_PASSWORD = ''
 
 
 from selenium import webdriver
