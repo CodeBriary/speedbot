@@ -1,32 +1,27 @@
  # Use Python base image
- #
 FROM python:3.9-slim
 
-# Install Chrome browser
-RUN apt-get update && apt-get install -y \
-    wget \
-    unzip \
-    curl \
-    gnupg \
-    && curl -sSL https://dl.google.com/linux/linux_signing_key.pub | apt-key add - \
-    && echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google-chrome.list \
+# Install Chrome and ChromeDriver
+RUN wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add - \
+    && echo "deb http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google.list \
     && apt-get update \
-    && apt-get install -y google-chrome-stable
+    && apt-get install -y google-chrome-stable \
+    && apt-get install -y chromium-chromedriver
 
-# Install ChromeDriver
-RUN wget https://chromedriver.storage.googleapis.com/114.0.5735.90/chromedriver_linux64.zip \
-    && unzip chromedriver_linux64.zip \
-    && mv chromedriver /usr/local/bin/ \
-    && chmod +x /usr/local/bin/chromedriver
+# Set up working directory
+WORKDIR /app
 
-# Set up work directory
-WORKDIR /usr/src/app
+# Copy requirements and install dependencies
+COPY requirements.txt .
+RUN pip install -r requirements.txt
 
-# Copy all files to the container
-COPY . .
+# Copy source code
+COPY speed_monitor.py .
 
-# Install the required Python packages
-RUN pip install selenium
+# Set environment variables
+ENV TWITTER_EMAIL=""
+ENV TWITTER_PASSWORD=""
+ENV PROMISED_DOWN="100"
+ENV PROMISED_UP="10"
 
-# Run the bot script
-CMD ["python", "./bot_script.py"]
+CMD ["python", "speed_monitor.py"]

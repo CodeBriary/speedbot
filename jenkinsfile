@@ -1,27 +1,59 @@
 #
 pipeline {
     agent any
-
+    
+    environment {
+        DOCKER_IMAGE = 'speed-monitor'
+        DOCKER_TAG = 'latest'
+    }
+    
     stages {
         stage('Checkout') {
             steps {
-                git 'https://github.com/your-username/your-repo.git'
+                checkout scm
             }
         }
-        stage('Build') {
+        
+        stage('Build Docker Image') {
             steps {
-                sh 'docker build -t internet-speed-bot .'
+                script {
+                    docker.build("${DOCKER_IMAGE}:${DOCKER_TAG}")
+                }
             }
         }
+        
         stage('Test') {
             steps {
-                sh 'python -m unittest discover -s tests'
+                script {
+                    // Run tests if you have any
+                    sh 'python -m pytest tests/'
+                }
             }
         }
+        
         stage('Deploy') {
             steps {
-                sh 'docker run -d --name bot internet-speed-bot'
+                script {
+                    // Deploy the container
+                    sh """
+                        docker stop ${DOCKER_IMAGE} || true
+                        docker rm ${DOCKER_IMAGE} || true
+                        docker run -d --name ${DOCKER_IMAGE} \
+                            -e TWITTER_EMAIL=${TWITTER_EMAIL} \
+                            -e TWITTER_PASSWORD=${TWITTER_PASSWORD} \
+                            -e PROMISED_DOWN=${PROMISED_DOWN} \
+                            -e PROMISED_UP=${PROMISED_UP} \
+                            ${DOCKER_IMAGE}:${DOCKER_TAG}
+                    """
+                }
             }
+        }
+    }
+    
+    post {
+        always {
+            // Clean up
+            cleanWs()
         }
     }
 }
